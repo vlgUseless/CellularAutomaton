@@ -114,7 +114,6 @@ unsigned int CellularAutomaton::countAliveNeighbors(int x, int y) const {
 
 
 int CellularAutomaton::getCell(int x, int y) const {
-	//TODO
 	if (boundaryCondition == "toroidal") {
 		x = (x + width) % width;
 		y = (y + height) % height;
