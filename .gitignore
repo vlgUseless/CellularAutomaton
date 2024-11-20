@@ -1,0 +1,23 @@
+Java/
+CellularAutomaton/.vs/
+CellularAutomaton/Debug/
+CellularAutomaton/Release/
+CellularAutomaton/x64/
+CellularAutomaton/packages/
+CellularAutomaton/CellularAutomaton/Debug/
+CellularAutomaton/CellularAutomaton/Release/
+CellularAutomaton/CellularAutomaton/x64/
+CellularAutomaton/CellularAutomaton/include/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# LaTeX
+*.sln
+*.synctex.gz
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc

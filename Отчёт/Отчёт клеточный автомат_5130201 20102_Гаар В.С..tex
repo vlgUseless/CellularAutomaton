@@ -1,0 +1,269 @@
+\documentclass[a4paper, final]{article}
+%\usepackage{literat} % Нормальные шрифты
+\usepackage[14pt]{extsizes} % для того чтобы задать нестандартный 14-ый размер шрифта
+\usepackage[T2A]{fontenc}
+\usepackage[UTF8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{cmap}
+\usepackage{listings} %листинги
+\usepackage{amsmath}
+\usepackage{amssymb} % Для красивого значка пустого множества
+\usepackage[left=25mm, top=20mm, right=20mm, bottom=20mm, footskip=10mm]{geometry}
+\usepackage{ragged2e} %для растягивания по ширине
+\usepackage{setspace} %для межстрочного интервала
+\usepackage{indentfirst} % для абзацного отступа
+\usepackage{moreverb} %для печати в листинге исходного кода программ
+\renewcommand\verbatimtabsize{4\relax}
+\renewcommand\listingoffset{0.2em} %отступ от номеров строк в листинге
+\renewcommand{\arraystretch}{1.4} % изменяю высоту строки в таблице
+\usepackage[font=small, singlelinecheck=false, justification=centering, format=plain, labelsep=period]{caption} %для настройки заголовка таблицы
+\usepackage{listingsutf8}
+\usepackage{xcolor} % цвета
+\usepackage{hyperref}% для гиперссылок
+\usepackage{enumitem} %для перечислений
+\usepackage{titlesec}
+\usepackage{graphicx}
+\graphicspath{ {./Рисунки/} }
+%\usepackage{float}
+\usepackage{booktabs}
+\usepackage{floatrow}
+\usepackage{scalerel} % Stretching images
+\usepackage[final]{pdfpages}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+
+\definecolor{apricot}{HTML}{FFF0DA}
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{string}{HTML}{B40000} % цвет строк в коде
+\definecolor{comment}{HTML}{008000} % цвет комментариев в коде
+\definecolor{keyword}{HTML}{1A00FF} % цвет ключевых слов в коде
+\definecolor{morecomment}{HTML}{8000FF} % цвет include и других элементов в коде
+\definecolor{captiontext}{HTML}{FFFFFF} % цвет текста заголовка в коде
+\definecolor{captionbk}{HTML}{999999} % цвет фона заголовка в коде
+\definecolor{bk}{HTML}{FFFFFF} % цвет фона в коде
+\definecolor{frame}{HTML}{999999} % цвет рамки в коде
+\definecolor{brackets}{HTML}{B40000} % цвет скобок в коде
+
+
+
+
+
+\AtBeginDocument{\renewcommand{\contentsname}{Содержание}}
+\AtBeginDocument{\renewcommand{\refname}{Список источников}}
+% Настраиваем листинги, чтобы они использовали счётчик figure
+\AtBeginDocument{
+  \renewcommand{\thelstlisting}{\thefigure}  % Листинги используют тот же счетчик, что и рисунки
+  \renewcommand{\lstlistingname}{Рис.}    % Меняем подпись
+}
+
+% Автоматически увеличиваем счетчик figure перед каждым листингом
+\let\oldlstlisting\lstlisting
+\renewcommand{\lstlisting}[1][]{%
+    \refstepcounter{figure}% Увеличиваем счетчик figure
+    \oldlstlisting[#1]% Вызываем оригинальную команду lstlisting
+}
+\lstset{
+    captionpos=b
+}
+\newcommand{\specialcell}[2][l]{\begin{tabular}[#1]{@{}l@{}}#2\end{tabular}} % Алиас для таблиц
+
+\floatsetup[table]{style=plain,capposition=top} % Подпись таблицы сверху
+\setlist[enumerate,itemize]{leftmargin=1.2cm} %отступ в перечислениях
+
+\hypersetup{colorlinks,
+  allcolors=[RGB]{010 090 200}} %красивые гиперссылки (не красные)
+
+% подгружаемые языки — подробнее в документации listings (это всё для листингов)
+\lstloadlanguages{ [LaTeX] TeX}
+% включаем кириллицу и добавляем кое−какие опции
+\lstset{language =[LaTeX] TeX, % выбираем язык по умолчанию
+extendedchars=true , % включаем не латиницу
+escapechar = | , % |«выпадаем» в LATEX|
+frame=tb , % рамка сверху и снизу
+commentstyle=\itshape , % шрифт для комментариев
+stringstyle =\bfseries} % шрифт для строк
+
+\textheight=24cm % высота текста
+\textwidth=16cm % ширина текста
+\oddsidemargin=0pt % отступ от левого края
+\topmargin=-1.5cm % отступ от верхнего края
+\parindent=24pt % абзацный отступ
+\parskip=0pt % интервал между абзацами
+\tolerance=2000 % терпимость к "жидким" строкам
+\flushbottom % выравнивание высоты страниц
+
+\begin{document} % начало документа
+\setcounter{tocdepth}{2} % Вложенность не больше 2 в содержании
+\lstset{
+  language=C++, % Язык кода по умолчанию
+  morekeywords={*,...}, % если хотите добавить ключевые слова, то добавляйте
+  % Цвета
+  keywordstyle=\color{keyword}\ttfamily\bfseries,
+  %stringstyle=\color{string}\ttfamily,
+  stringstyle=\ttfamily\color{red!50!brown},
+  commentstyle=\color{comment}\ttfamily,
+  morecomment=[l][\color{morecomment}]{\#},
+  % Настройки отображения
+  breaklines=true, % Перенос длинных строк
+  basicstyle=\ttfamily\footnotesize, % Шрифт для отображения кода
+  backgroundcolor=\color{bk}, % Цвет фона кода
+  frame=single,xleftmargin=\fboxsep,xrightmargin=-\fboxsep, % Рамка, подогнанная к заголовку
+  rulecolor=\color{frame}, % Цвет рамки
+  tabsize=3, % Размер табуляции в пробелах
+  % Настройка отображения номеров строк. Если не нужно, то удалите весь блок
+  numbers=left, % Слева отображаются номера строк
+  stepnumber=1, % Каждую строку нумеровать
+  numbersep=5pt, % Отступ от кода
+  numberstyle=\small\color{black}, % Стиль написания номеров строк
+  % Для отображения русского языка
+  extendedchars=true,
+  literate={Ö}{ {\"O} }1
+  {~}{ {\textasciitilde} }1
+  {а}{ {\selectfont\char224} }1
+  {б}{ {\selectfont\char225} }1
+  {в}{ {\selectfont\char226} }1
+  {г}{ {\selectfont\char227} }1
+  {д}{ {\selectfont\char228} }1
+  {е}{ {\selectfont\char229} }1
+  {ё}{ {\"e} }1
+  {ж}{ {\selectfont\char230} }1
+  {з}{ {\selectfont\char231} }1
+  {и}{ {\selectfont\char232} }1
+  {й}{ {\selectfont\char233} }1
+  {к}{ {\selectfont\char234} }1
+  {л}{ {\selectfont\char235} }1
+  {м}{ {\selectfont\char236} }1
+  {н}{ {\selectfont\char237} }1
+  {о}{ {\selectfont\char238} }1
+  {п}{ {\selectfont\char239} }1
+  {р}{ {\selectfont\char240} }1
+  {с}{ {\selectfont\char241} }1
+  {т}{ {\selectfont\char242} }1
+  {у}{ {\selectfont\char243} }1
+  {ф}{ {\selectfont\char244} }1
+  {х}{ {\selectfont\char245} }1
+  {ц}{ {\selectfont\char246} }1
+  {ч}{ {\selectfont\char247} }1
+  {ш}{ {\selectfont\char248} }1
+  {щ}{ {\selectfont\char249} }1
+  {ъ}{ {\selectfont\char250} }1
+  {ы}{ {\selectfont\char251} }1
+  {ь}{ {\selectfont\char252} }1
+  {э}{ {\selectfont\char253} }1
+  {ю}{ {\selectfont\char254} }1
+  {я}{ {\selectfont\char255} }1
+  {А}{ {\selectfont\char192} }1
+  {Б}{ {\selectfont\char193} }1
+  {В}{ {\selectfont\char194} }1
+  {Г}{ {\selectfont\char195} }1
+  {Д}{ {\selectfont\char196} }1
+  {Е}{ {\selectfont\char197} }1
+  {Ё}{ {\"E} }1
+  {Ж}{ {\selectfont\char198} }1
+  {З}{ {\selectfont\char199} }1
+  {И}{ {\selectfont\char200} }1
+  {Й}{ {\selectfont\char201} }1
+  {К}{ {\selectfont\char202} }1
+  {Л}{ {\selectfont\char203} }1
+  {М}{ {\selectfont\char204} }1
+  {Н}{ {\selectfont\char205} }1
+  {О}{ {\selectfont\char206} }1
+  {П}{ {\selectfont\char207} }1
+  {Р}{ {\selectfont\char208} }1
+  {С}{ {\selectfont\char209} }1
+  {Т}{ {\selectfont\char210} }1
+  {У}{ {\selectfont\char211} }1
+  {Ф}{ {\selectfont\char212} }1
+  {Х}{ {\selectfont\char213} }1
+  {Ц}{ {\selectfont\char214} }1
+  {Ч}{ {\selectfont\char215} }1
+  {Ш}{ {\selectfont\char216} }1
+  {Щ}{ {\selectfont\char217} }1
+  {Ъ}{ {\selectfont\char218} }1
+  {Ы}{ {\selectfont\char219} }1
+  {Ь}{ {\selectfont\char220} }1
+  {Э}{ {\selectfont\char221} }1
+  {Ю}{ {\selectfont\char222} }1
+  {Я}{ {\selectfont\char223} }1
+  {\{}{ { {\color{brackets}\{} } }1 % Цвет скобок {
+  {\} }{ { {\color{brackets}\} } } }1 % Цвет скобок }
+}
+
+% НАЧАЛО ТИТУЛЬНОГО ЛИСТА
+\begin{center}
+\hfill \break
+\hfill \break
+\normalsize{МИНИСТЕРСТВО НАУКИ И ВЫСШЕГО ОБРАЗОВАНИЯ РОССИЙСКОЙ ФЕДЕРАЦИИ\\
+ федеральное государственное автономное образовательное учреждение высшего образования «Санкт-Петербургский политехнический университет Петра Великого»\\[5pt]}
+\normalsize{Институт Компьютерных Наук и Кибербезопасности}\\[5pt] 
+\normalsize{Высшая Школа Технологий Искусственного Интеллекта}\\[5pt] 
+\normalsize{Направление: 02.03.01 Математика и компьютерные науки}\\
+
+\hfill \break
+\hfill \break
+\hfill \break
+\large{\textbf{Теория алгоритмов}}\\
+\large{Отчёт по лабораторной работе №1}\\
+\large{\textit{вариант 11\\}}
+
+\hfill \break
+\hfill \break
+\end{center}
+ 
+\small{ 
+\begin{tabular}{lrrl}
+\!\!\!Студент, & \hspace{2cm} & & \\
+\!\!\!группы 5130201/20102 & \hspace{2cm} & \underline{\hspace{3cm}} &Гаар В.С. \\\\
+\!\!\!Преподаватель, \hspace{2cm} & & \\
+\!\!\!к.т.н., доц. & \hspace{2cm} & \underline{\hspace{3cm}} &  Востров А.В. \\\\
+&&\hspace{5cm}
+\end{tabular}
+\begin{flushright}
+<<\underline{\hspace{1cm}}>>\underline{\hspace{2.5cm}} 2024 г.
+\end{flushright}
+}
+
+\hfill \break
+\hfill \break
+\begin{center} \small{Санкт-Петербург, 2024} \end{center}
+\thispagestyle{empty} % выключаем отображение номера для этой страницы
+
+% КОНЕЦ ТИТУЛЬНОГО ЛИСТА
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{section}{Введение}
+\section*{Введение}
+hello
+
+\newpage
+\section{Математическое описание}
+
+
+\newpage
+\section{Особенности реализации}
+
+
+\cleardoublepage
+\phantomsection
+\newpage
+\section*{Заключение}
+
+
+\cleardoublepage
+\phantomsection
+\newpage
+%Список источников
+\begin{thebibliography}{0}
+	\bibitem{bib:carpet}
+	Ковёр Серпинского [Электронный ресурс] URL: https://ru.wikipedia.org/wiki/Ковёр\_Серпинского (дата обращения 30.10.2024).
+\end{thebibliography}
+\addcontentsline{toc}{section}{Список источников}
+
+\end{document}
