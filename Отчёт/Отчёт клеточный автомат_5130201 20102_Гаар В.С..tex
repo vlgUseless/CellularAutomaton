@@ -97,6 +97,7 @@ stringstyle =\bfseries} % шрифт для строк
 \setcounter{tocdepth}{2} % Вложенность не больше 2 в содержании
 \lstset{
   language=C++, % Язык кода по умолчанию
+  escapeinside={(*@}{@*)}, % Позволяет использовать LaTeX-команды внутри кода
   morekeywords={*,...}, % если хотите добавить ключевые слова, то добавляйте
   % Цвета
   keywordstyle=\color{keyword}\ttfamily\bfseries,
@@ -390,7 +391,7 @@ $$f(s_0, s_1, s_2, s_3, s_4) = (00000000001001010000000000001000),$$
 
 Код создания данного класса приведён на рисунке №~\ref{lst:class}.
 
-\begin{lstlisting}[mathescape=true, caption={Код создания класса \texttt{CellularAutomaton}}, 
+\begin{lstlisting}[caption={Код создания класса \texttt{CellularAutomaton}}, 
   label={lst:class}]
 class CellularAutomaton
 {
@@ -428,30 +429,37 @@ private:
 
 \begin{verbatim}
   Вход: координаты клетки x, y типа int.
+  
   Выход: значение клетки поля типа int в соответствии с её координатами и 
   заданным граничным условием.
 \end{verbatim}
 
-\begin{lstlisting}[mathescape=true, caption={Код реализации метода \texttt{getCell}}, label={lst:getCell}]
+\begin{lstlisting}[caption={Код реализации метода \texttt{getCell}}, label={lst:getCell}]
 int CellularAutomaton::getCell(int x, int y) const {
   if (boundaryCondition == "toroidal") {
-    x = (x + width) % width;
-    y = (y + height) % height;
-    if (x < 0 || x >= width || y < 0 || y >= height) {
-      return field[y][x];
+    if (x < 0) {
+      return field[height - 1][y];
     }
-    else {
-      return field[x][y];
+    else if(x > height) {
+      return field[0][y];
     }
+
+    if (y < 0) {
+      return field[x][width-1];
+    }
+    else if (y > width) {
+      return field[x][0];
+    }
+    return field[x%height][y%width];
   }
   else if (boundaryCondition == "zero") {
-    if (x < 0 || x >= width || y < 0 || y >= height) {
+    if (x < 0 || x >= height || y < 0 || y >= width) {
       return 0;
     }
     return field[x][y];
   }
   else if (boundaryCondition == "one") {
-    if (x < 0 || x >= width || y < 0 || y >= height) {
+    if (x < 0 || x >= height || y < 0 || y >= width) {
       return 1;
     }
     return field[x][y];
@@ -461,18 +469,246 @@ int CellularAutomaton::getCell(int x, int y) const {
 \end{lstlisting}
 
 \subsection{Функция подсчёта количества живых клеток}
+Функция \texttt{countAliveNeighbors} подсчитывает состояния соседей клетки, используя метод \texttt{getCell} 
+для получения их значений. Возвращает закодированное целое число, где состояния соседей закодированы битами.
+Каждый сосед представлен в виде отдельного бита:
+\begin{itemize}
+  \item Сосед сверху $s_1$ -- 8-й бит (самый старший, s1 << 3).
+  \item Сосед снизу $s_2$ -- 4-й бит.
+  \item Сосед слева $s_3$ -- 2-й бит.
+  \item Сосед справа $s_4$ -- 1-й бит (самый младший, s4).
+\end{itemize}
 
+Код реализации метода \texttt{countAliveNeighbors} представлен на рисунке №~\ref{lst:countAliveNeighbors}.
+
+\begin{verbatim}
+Вход:
+x (тип int): координата клетки по оси X.
+y (тип int): координата клетки по оси Y.
+
+Выход:
+Возвращает unsigned int: целое число, где состояния соседей закодированы в
+4 битах.
+\end{verbatim}
+
+\begin{lstlisting}[caption={Код реализации метода \texttt{countAliveNeighbors}}, label={lst:countAliveNeighbors}]
+unsigned int CellularAutomaton::countAliveNeighbors(int x, int y) const {
+  unsigned int s1 = getCell(x, y - 1);
+  unsigned int s2 = getCell(x, y + 1);
+  unsigned int s3 = getCell(x - 1, y);
+  unsigned int s4 = getCell(x + 1, y);
+
+  return (s1 << 3) + (s2 << 2) + (s3 << 1) + s4;
+}
+\end{lstlisting}
+
+\subsection{Функция перехода к следующему состоянию}
+Функция \texttt{evolve} вычисляет следующее состояние клеточного автомата. Она проходит через каждую клетку, 
+подсчитывает состояния соседей, используя \texttt{countAliveNeighbors}, определяет новое состояние клетки на 
+основе текущего состояния и правила, закодированного в строке \texttt{rule}, и сохраняет новое состояние в массиве 
+\texttt{nextField}. Затем обновляет основное поле \texttt{field} значениями из \texttt{nextField}.
+
+Код реализации метода \texttt{evolve} представлен на рисунке №~\ref{lst:evolve}.
+
+\begin{verbatim}
+Вход:
+field (тип std::vector<std::vector<int>>)
+Текущее состояние клеточного автомата, представленное в виде двумерного 
+массива.
+
+width (тип int)
+Ширина поля (количество столбцов).
+
+height (тип int)
+Высота поля (количество строк).
+
+rule (тип std::string)
+Правило перехода клеточного автомата, закодированное в строке.
+
+nextField (тип std::vector<std::vector<int>>)
+Временный массив для записи новых состояний клеток.
+
+Выход:
+Поле field обновляется до следующего поколения.
+\end{verbatim}
+
+\begin{lstlisting}[caption={Код реализации метода \texttt{evolve}}, label={lst:evolve}]
+void CellularAutomaton::evolve() {
+  // Проходим по каждой клетке
+  for (int x = 0; x < height; x++) {
+    for (int y = 0; y < width; y++) {
+      // Подсчитываем количество живых соседей для клетки (x, y)
+      int aliveNeighbors = countAliveNeighbors(x, y);
+
+      // Текущий статус клетки
+      int currentState = field[x][y];
+
+      // Вычисляем индекс в правиле для данной клетки и соседей
+      int ruleIndex = (currentState << 4) | aliveNeighbors;
+      int newState = (rule[ruleIndex] == '1') ? 1 : 0;
+
+      // Обновляем nextField для данной клетки
+      nextField[x][y] = newState;
+    }
+  }
+
+  // Копируем nextField в field для следующего поколения
+  for (int x = 0; x < height; x++) {
+    for (int y = 0; y < width; y++) {
+      field[x][y] = nextField[x][y];
+    }
+  }
+}
+\end{lstlisting}
+  
 
 \newpage
 \section{Результаты работы программы}
+На рисунке №~\ref{img:example1} представлено создание клеточного автомата №1 с полем 2x2, ручным заданием начального
+состояния, единичными границами и количеством итераций, равным 4.
+\begin{figure}[H]
+   \centering
+   \includegraphics[scale=0.6]{example1.png}
+   \caption{Создание клеточного автомата №1}
+   \label{img:example1}
+\end{figure}
 
+На рисунке №~\ref{img:example1_res} представлены результаты эволюции клеточного автомата №1 за все 4 итерации.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{example1_res.png}
+  \caption{Итерации эволюции клеточного автомата №1}
+  \label{img:example1_res}
+\end{figure}
+
+
+На рисунке №~\ref{img:example2} представлено создание клеточного автомата №2 с полем 2x2, ручным заданием начального
+состояния, тороидальными границами и количеством итераций, равным 4.
+\begin{figure}[H]
+   \centering
+   \includegraphics[scale=0.6]{example2.png}
+   \caption{Создание клеточного автомата №2}
+   \label{img:example2}
+\end{figure}
+
+На рисунке №~\ref{img:example2_res} представлены результаты эволюции клеточного автомата №2 за все 4 итерации.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{example2_res.png}
+  \caption{Итерации эволюции клеточного автомата №2}
+  \label{img:example2_res}
+\end{figure}
+
+На рисунке №~\ref{img:example3} представлено создание клеточного автомата №3 с полем 20x20, автоматическим заданием 
+начального состояния, нулевыми границами и количеством итераций, равным 4.
+\begin{figure}[H]
+   \centering
+   \includegraphics[scale=0.6]{example3.png}
+   \caption{Создание клеточного автомата №3}
+   \label{img:example3}
+\end{figure}
+
+На рисунке №~\ref{img:example3_res} представлены результаты эволюции клеточного автомата №3 за все 4 итерации.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.4]{example3_res.png}
+  \caption{Итерации эволюции клеточного автомата №3}
+  \label{img:example3_res}
+\end{figure}
+
+На рисунке №~\ref{img:example4} представлено создание клеточного автомата №4 с полем 5x5, автоматическим заданием 
+начального состояния, единичными границами и количеством итераций, равным 20.
+\begin{figure}[H]
+   \centering
+   \includegraphics[scale=0.6]{example4.png}
+   \caption{Создание клеточного автомата №4}
+   \label{img:example4}
+\end{figure}
+
+На рисунке №~\ref{img:example4_res} представлены результаты эволюции клеточного автомата №4 за все 20 итераций.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale=0.6]{example4_res.png}
+  \caption{Итерации эволюции клеточного автомата №4}
+  \label{img:example4_res}
+\end{figure}
 
 \cleardoublepage
 \phantomsection
 \newpage
+\addcontentsline{toc}{section}{Заключение}
 \section*{Заключение}
+В ходе выполнения лабораторной работы №1 были выполнены следующие задачи:
+\begin{enumerate}
+  \item Реализован двумерный клеточный автомат с окрестностью фон Неймана в соответствии с 
+  полученным номером № = номер варианта * 11 * год рождения * день * месяц.
+  \item Граничные условия выбирает пользователь (торроидальные, нулевые, единичные). 
+  \item Пользователь определяет ширину поля и количество итераций. 
+  \item Учтена возможность ввода различных начальных условий (как вручную, так и 
+  случайным образом) по выбору пользователя. 
+  \item Реализация в консоли.
+  \item Проанализирован клеточный автомат в отчете.
+\end{enumerate}
 
+В  итоге получился клеточный автомат, реализующий правило 2'424'840 с четырьмя соседями (окрестность фон Неймана). 
+Граничные условия выбирает пользователь (торроидальные, нулевые, единичные). Начальные состояния генерируются 
+случайным образом или задаются пользователем. 
+Автомат эволюционирует, обновляя каждую клетку на основе правила, учитывающего текущее состояние и число 
+активных соседей.
 
+Реализованный клеточный автомат с единичными границами и любым начальным состоянием:
+\begin{itemize}
+  \item Демонстрирует переодический паттерн, устойчивый к изменениям начальных условий.
+  \item Демонстрирует цикличность, которая возникает через 3–5 итераций (в зависимости от начального состояния).
+  \item Полностью не затухает: количество живых клеток остаётся постоянным на каждом цикле.
+  \item Появляется устойчивый рисунок в виде прямоугольника, перемещающегося из левого верхнего угла в правый нижний
+  и постепенно уменьшающегося по высоте.
+  \item Сходится к периодичности состояний.
+  \item Относится к классу 2 по классификации Вольфрама.
+  \item Напоминает биологические циклы, такие как суточные ритмы или процессы восстановления.
+\end{itemize}
+
+Реализованный клеточный автомат с нулевыми и тороидальными границами и любым начальным состоянием:
+\begin{itemize}
+  \item Демонстрирует хаотичный паттерн в первые 2–3 итерации.
+  \item Полностью затухает к 3–4 итерации, независимо от начальных условий.
+  \item Не демонстрирует устойчивых структур или цикличности.
+  \item Отсутствуют локальные области порядка.
+  \item Сходится к состоянию исчезновения всех живых клеток.
+  \item Относится к классу 1 по классификации Вольфрама.
+  \item Для полностью заполненного единичного поля автомат затухает быстрее -- за одну итерацию.
+  \item Напоминает диссипативный процесс, например, рассеивание тепла или угасание волн.
+\end{itemize}
+
+Из достоинств реализации можно отметить:
+\begin{itemize}
+  \item Поддержка нескольких типов границ (торроидальные, нулевые, единичные).
+  \item Простота и структурированность кода.
+  \item Обобщённость правила.
+\end{itemize}
+
+Из недостатков реализации можно отметить: 
+\begin{itemize}
+  \item Ограниченность правил: возможность задавать только одно фиксированное правило за запуск.
+  \item Фиксированное соседство: используется только соседство фон Неймана.
+  \item Отсутствие статистики.
+  \item Ограниченная визуализация.
+\end{itemize}
+
+Проект располагает к масштабированию: имеется возможность добавить поддержку окрестности Мура, внедрить возможность
+задания правила через пользовательский интерфейс, внедрить сбор статистики, добавить графическую визуализацию.
+
+Работа была выполнена в среде разработки Microsoft Visual Studio 2022 (v143). Использовался стандарт языка ISO C++ 14 и
+компилятор MSVC версии 14.32.31326. Была выбрана платформа решений x64.
+
+Исходный код всего проекта находится в \href{https://github.com/vlgUseless/CellularAutomaton}
+{репозитории GitHub} (\url{https://github.com/vlgUseless/CellularAutomaton}).
+
+Полученные знания могут быть и будут испольованы в работе над последующими проектами и заданиями.
 \cleardoublepage
 \phantomsection
 \newpage
@@ -480,7 +716,7 @@ int CellularAutomaton::getCell(int x, int y) const {
 \begin{thebibliography}{0}
   \bibitem{bib:linearcellularautomaton}
 	ИТМО. Линейный клеточный автомат, эквивалентность МТ [Электронный ресурс] URL: 
-  https://neerc.ifmo.ru/wiki/index.php?title=Линейный\_клеточный\_автомат,\_эквивалентность\_МТ
+  https://neerc.ifmo.ru/wiki/index.php?title=Линейный\_клеточный\_ \ автомат,\_эквивалентность\_МТ
   (дата обращения 20.11.2024).
 
 	\bibitem{bib:cellularautomaton}
