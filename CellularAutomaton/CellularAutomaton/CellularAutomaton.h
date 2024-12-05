@@ -21,6 +21,10 @@ public:
     void display() const;
 
     void setInitialState();
+
+    void setInitialState(const std::vector<std::vector<int>>& initialState);
+
+ unsigned int countAliveNeighbors() const;
     
 private:
     void generateInitialState();

@@ -51,7 +51,10 @@ void CellularAutomaton::setInitialState() {
 			}
 		}
 	}
+}
 
+void CellularAutomaton::setInitialState(const std::vector<std::vector<int>> & initialState) {
+	field = initialState;
 }
 
 
@@ -88,12 +91,12 @@ void CellularAutomaton::display() const{
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
 
 	for (int x = 0; x < height; x++) {
-		std::string row = "";
+		std::string row = "{";
 		for (int y = 0; y < width; y++) {
 			// Используем символы для живой и мёртвой клетки
-			row.append(field[x][y] == 1 ? "▮" : "▯");
+			row.append(field[x][y] == 1 ? "1," : "0,");
 		}
-		std::cout << row + "\n";
+		std::cout << row + "},\n";
 	}
 
 	// Добавляем задержку, чтобы наблюдать изменения
@@ -110,6 +113,16 @@ unsigned int CellularAutomaton::countAliveNeighbors(int x, int y) const {
 	unsigned int s4 = getCell(x, y + 1);
 
 	return (s1 << 3) + (s2 << 2) + (s3 << 1) + s4;
+}
+
+unsigned int CellularAutomaton::countAliveNeighbors() const {
+	unsigned int count = 0;
+	for (int x = 0; x < height; x++) {
+		for (int y = 0; y < width; y++) {
+			count += field[x][y];
+		}
+	}
+	return count;
 }
 
 
